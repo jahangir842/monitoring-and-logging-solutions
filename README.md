@@ -24,6 +24,7 @@
      │   ├── setup/
      │   ├── examples/
      │   └── config/
+     ├── newrelic.md
      └── README.md
      ```
 

@@ -60,7 +60,7 @@ New Relic is a comprehensive observability platform designed to help organizatio
 
 By leveraging New Relic's capabilities, organizations can ensure their applications are running optimally, providing the best possible user experience.
 
-# Example: 
+# Example 1: 
 Integrating New Relic into your server to monitor your Vue.js and Django applications is a great idea for gaining insights into your application's performance. Here's a step-by-step guide to help you get started:
 
 ### Step 1: Create a New Relic Account
@@ -121,3 +121,99 @@ For the Vue.js application, you need to integrate the New Relic Browser agent.
 - **Documentation**: Refer to the [New Relic Python Agent Documentation](https://docs.newrelic.com/docs/agents/python-agent) and [New Relic Browser Agent Documentation](https://docs.newrelic.com/docs/browser/new-relic-browser) for more detailed configuration options and troubleshooting.
 
 By following these steps, you'll be able to set up New Relic to monitor your Django and Vue.js applications on a single droplet effectively.
+
+# Example 2: 
+
+To install New Relic on Ubuntu, you'll typically want to monitor your applications or infrastructure. Here's a step-by-step guide for installing the New Relic agent for different use cases:
+
+### For APM (Application Performance Monitoring) with New Relic's PHP Agent
+
+1. **Install New Relic's PHP Agent:**
+
+   - Add the New Relic repository:
+
+     ```bash
+     sudo apt-get install -y wget gnupg
+     wget -O - https://download.newrelic.com/548C16BF.gpg | sudo apt-key add -
+     echo "deb [arch=amd64] http://debian.newrelic.com/debian/ newrelic non-free" | sudo tee -a /etc/apt/sources.list.d/newrelic.list
+     ```
+
+   - Update the package list and install the agent:
+
+     ```bash
+     sudo apt-get update
+     sudo apt-get install newrelic-php5
+     ```
+
+   - Configure New Relic:
+
+     ```bash
+     sudo newrelic-install install
+     ```
+
+   - Follow the prompts to complete the installation and input your New Relic license key when asked.
+
+   - Restart your web server to apply the changes:
+
+     ```bash
+     sudo systemctl restart apache2  # For Apache
+     # or
+     sudo systemctl restart nginx    # For Nginx
+     ```
+
+2. **Verify Installation:**
+
+   - You can check your New Relic dashboard to confirm that your PHP application is reporting data.
+
+### For Infrastructure Monitoring with New Relic's Infrastructure Agent
+
+1. **Add the New Relic repository:**
+
+   - Add the repository and install the GPG key:
+
+     ```bash
+     sudo apt-get install -y wget gnupg
+     wget -O - https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
+     echo "deb [arch=amd64] https://download.newrelic.com/infrastructure_agent/linux/apt stable main" | sudo tee /etc/apt/sources.list.d/newrelic-infra.list
+     ```
+
+   - Update the package list and install the agent:
+
+     ```bash
+     sudo apt-get update
+     sudo apt-get install newrelic-infra
+     ```
+
+2. **Configure the New Relic Agent:**
+
+   - Open the configuration file:
+
+     ```bash
+     sudo nano /etc/newrelic-infra/integrations.d/newrelic-infra.yml
+     ```
+
+   - Insert your New Relic license key and any other required configuration settings:
+
+     ```yaml
+     license_key: YOUR_NEW_RELIC_LICENSE_KEY
+     ```
+
+   - Save the file and exit.
+
+3. **Start the New Relic Infrastructure Agent:**
+
+   ```bash
+   sudo systemctl start newrelic-infra
+   ```
+
+   - To ensure the agent starts on boot:
+
+     ```bash
+     sudo systemctl enable newrelic-infra
+     ```
+
+4. **Verify Installation:**
+
+   - Check your New Relic dashboard to confirm that your infrastructure metrics are being reported.
+
+These steps should help you get New Relic set up on your Ubuntu system. If you're using a different language or have other specific needs, let me know, and I can adjust the instructions accordingly!

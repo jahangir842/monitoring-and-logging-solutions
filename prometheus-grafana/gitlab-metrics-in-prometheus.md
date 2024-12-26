@@ -1,8 +1,4 @@
-Certainly! Here's the updated guide with the specific configuration for enabling Prometheus by including `prometheus['enable'] = true`.
-
----
-
-## **Guide: Enabling Prometheus and Accessing Metrics in GitLab**
+Enabling Prometheus and Accessing Metrics in GitLab**
 
 ### **Step 1: Ensure You're Using the Correct GitLab Edition**
 - **GitLab Community Edition (CE)**: Supports basic Prometheus integration for monitoring GitLab instance metrics.

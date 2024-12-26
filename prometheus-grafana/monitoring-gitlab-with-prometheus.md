@@ -1,4 +1,4 @@
-Enabling Prometheus and Accessing Metrics in GitLab**
+# Monitor Gitlab in Prometheus
 
 ### **Step 2: Access the GitLab Container (If Using Docker)**
 If you're running GitLab in a Docker container, follow these steps to access the container and make the necessary changes to the configuration.

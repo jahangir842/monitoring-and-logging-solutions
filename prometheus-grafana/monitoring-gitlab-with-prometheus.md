@@ -1,105 +1,165 @@
-# Monitor Gitlab in Prometheus
+# Monitor GitLab in Prometheus
 
 ### **Step 2: Access the GitLab Container (If Using Docker)**
-If you're running GitLab in a Docker container, follow these steps to access the container and make the necessary changes to the configuration.
 
-1. **Access the running GitLab container**:
+If you’re running GitLab in a Docker container, follow these steps to access it and configure Prometheus integration.
+
+1. **Access the GitLab container**:
    ```bash
    docker exec -it <container_name> /bin/bash
    ```
+   Replace `<container_name>` with the name of your GitLab container (e.g., `gitlab`).
 
-   Replace `<container_name>` with the actual name of your GitLab container (e.g., `gitlab`).
-
-2. Once inside the container, you will need to locate and edit the `gitlab.rb` file to enable Prometheus.
+2. Once inside, locate and edit the `gitlab.rb` file to enable Prometheus.
 
 ---
-### **Step 3: Enable Prometheus Integration**
-1. **Take Backup of `gitlab.rb` file**:
-
-Take backup of gitlab.rb file.
 
 ### **Step 3: Enable Prometheus Integration**
 
-1. **Edit the `gitlab.rb` file**:
-   Open the configuration file for GitLab inside the container. This file contains the settings for Prometheus.
+1. **Backup the `gitlab.rb` file**:  
+   Always create a backup before making changes:
+   ```bash
+   cp /etc/gitlab/gitlab.rb /etc/gitlab/gitlab.rb.bak
+   ```
 
+2. **Edit the `gitlab.rb` file**:  
+   Open the file in an editor:
    ```bash
    nano /etc/gitlab/gitlab.rb
    ```
 
-3. **Enable IP Allowlisting for Monitoring Endpoints** (Optional but recommended):
-   By default, GitLab restricts access to monitoring endpoints (like `/metrics`) using IP allowlisting. You can add specific IPs or IP ranges to allow external access:
+3. **Enable Prometheus**:  
+   Add or modify the following settings:
+   ```ruby
+   prometheus['enable'] = true
+   prometheus['listen_address'] = '0.0.0.0:9090'
+   ```
 
-   - Add the IP addresses or ranges in the `gitlab.rb` file:
+4. **Optional - Enable IP Allowlisting for Monitoring Endpoints**:  
+   Restrict `/metrics` access to specific IPs or ranges:
+   ```ruby
+   gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8', '192.168.0.0/16']
+   ```
 
-     ```ruby
-     gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8', '192.168.0.1']
-     ```
-
-     This allows requests from the specified IP ranges to access the `/metrics` endpoint.
-
-4. **Save the `gitlab.rb` file** after making the changes.
+5. Save and close the file.
 
 ---
 
 ### **Step 4: Reconfigure GitLab**
 
-After making changes to the `gitlab.rb` configuration, you need to reconfigure GitLab to apply these settings.
+After updating the `gitlab.rb` file, reconfigure GitLab to apply the changes:
 
-1. **Run the reconfiguration command**:
+1. Run the following command:
    ```bash
-   sudo gitlab-ctl reconfigure
+   gitlab-ctl reconfigure
    ```
-
-   This will apply the changes and restart the necessary GitLab services.
+   This command applies the configuration and restarts GitLab services.
 
 ---
 
+### **Step 5: Test Prometheus Metrics Endpoint**
 
-### **Step 6: Test Accessing Prometheus Metrics**
-
-Once GitLab is reconfigured and the ports are exposed, you can test the Prometheus metrics endpoint:
-
-1. **Locally on the GitLab server** (using `localhost`):
+1. **Locally on the GitLab server**:  
+   Test access to the metrics endpoint:
    ```bash
    curl http://localhost:9090/-/metrics
    ```
-- The port can be used as configured.
 
-2. **Externally (from another machine)**, replace `<your_host_ip_or_domain>` with the IP or domain of your GitLab server:
+2. **Externally from another machine**:  
+   Replace `<your_host_ip_or_domain>` with your GitLab server's IP or domain:
    ```bash
-   curl http://<your_host_ip_or_domain>/-/metrics
+   curl http://<your_host_ip_or_domain>:9090/-/metrics
    ```
-
-   If you're using **HTTPS**, use `https://` instead:
+   For HTTPS, use:
    ```bash
    curl https://<your_host_ip_or_domain>:9090/-/metrics
    ```
 
 ---
 
-### **Step 8: Monitor and Visualize Metrics in Grafana** (Optional)
+### **Step 6: Configure Prometheus to Scrape GitLab Metrics**
 
-If you want to visualize GitLab metrics in **Grafana**:
+Update the Prometheus configuration file (`prometheus.yml`) to include GitLab:
 
-1. **Add Prometheus as a Data Source in Grafana**:
-   - Go to **Grafana** → **Configuration** → **Data Sources** → **Add data source**.
-   - Select **Prometheus** and set the URL to your GitLab Prometheus endpoint (e.g., `http://<your_host_ip_or_domain>:9090`).
+```yaml
+global:
+  scrape_interval: 15s
 
-2. **Create Dashboards** using the available Prometheus metrics from GitLab.
+scrape_configs:
+  - job_name: 'gitlab'
+    metrics_path: '/-/metrics'  # Correct path to GitLab metrics
+    static_configs:
+      - targets: ['192.168.1.208:9090']  # Replace with your GitLab server's address
+```
+
+Reload Prometheus to apply the updated configuration:
+```bash
+docker restart prometheus
+```
+
+---
+
+### **Step 7: Visualize Metrics in Grafana**
+
+Once Prometheus is scraping GitLab metrics, you can use Grafana to create a dashboard for visualizing these metrics.
+
+#### **1. Add Prometheus as a Data Source**
+1. Log in to Grafana.
+2. Navigate to **Configuration** → **Data Sources**.
+3. Click **Add data source** and select **Prometheus**.
+4. In the URL field, enter the address of your Prometheus server, such as:
+   ```plaintext
+   http://<prometheus_host>:9090
+   ```
+5. Click **Save & Test** to verify the connection.
+
+---
+
+#### **2. Create a New Dashboard**
+1. Go to the **Dashboards** menu and click **+ New Dashboard**.
+2. Select **Add a New Panel** to create a custom panel for visualizing GitLab metrics.
+
+---
+
+#### **3. Link the Dashboard to GitLab Metrics**
+1. In the **Query** section of the panel editor:
+   - Choose **Prometheus** as the data source.
+   - Write PromQL queries to fetch GitLab-specific metrics, such as:
+     - **GitLab process memory usage**:
+       ```promql
+       process_resident_memory_bytes{job="gitlab"}
+       ```
+     - **GitLab HTTP requests per second**:
+       ```promql
+       rate(http_requests_total{job="gitlab"}[1m])
+       ```
+     - **Sidekiq job queue latency**:
+       ```promql
+       sidekiq_queue_latency_seconds{job="gitlab"}
+       ```
+2. Adjust the visualization options (e.g., graph, gauge, or table) to match your requirements.
+
+---
+
+#### **4. Save the Dashboard**
+1. Click **Apply** to save the panel.
+2. Name your dashboard (e.g., **GitLab Metrics Dashboard**) and save it.
+
+---
+
+#### **5. Monitor GitLab Metrics**
+- Your dashboard will now display live GitLab metrics.
+- Use the **Refresh Interval** option to set how often the dashboard updates.
+- Add additional panels for more metrics as needed.
 
 ---
 
 ## **Summary**
 
-1. **Enable Prometheus** in the `gitlab.rb` configuration file by setting `prometheus['enable'] = true`.
-2. **Allow external access** to the metrics endpoint by setting `prometheus['listen_address'] = '0.0.0.0:9090'`.
-3. Optionally, **enable IP allowlisting** for monitoring endpoints.
-4. **Reconfigure GitLab** to apply the changes.
-5. **Expose the necessary ports** for external access to Prometheus metrics.
-6. Test access to `/metrics` both locally and externally.
-7. Optionally, **integrate with Grafana** for visualization.
+1. Enable Prometheus in GitLab by editing the `gitlab.rb` file.
+2. Reconfigure GitLab and test the `/metrics` endpoint.
+3. Add GitLab to Prometheus' scrape configuration.
+4. Integrate Prometheus with Grafana by adding it as a data source.
+5. Create a custom dashboard in Grafana and link it to GitLab metrics using PromQL queries.
 
-By following these steps, you'll have Prometheus enabled on GitLab and be able to access and visualize GitLab metrics, whether for internal monitoring or integration with tools like Grafana.
-
-Let me know if you have any questions or need further clarification!
+This setup provides a robust visualization of GitLab’s performance and health metrics. Let me know if you need specific PromQL examples or additional help!

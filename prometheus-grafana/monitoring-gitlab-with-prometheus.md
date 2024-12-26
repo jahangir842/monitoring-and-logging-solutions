@@ -1,9 +1,5 @@
 Enabling Prometheus and Accessing Metrics in GitLab**
 
-### **Step 1: Ensure You're Using the Correct GitLab Edition**
-- **GitLab Community Edition (CE)**: Supports basic Prometheus integration for monitoring GitLab instance metrics.
-- **GitLab Enterprise Edition (EE)**: Provides additional features like CI/CD pipeline monitoring and enhanced metrics.
-
 ### **Step 2: Access the GitLab Container (If Using Docker)**
 If you're running GitLab in a Docker container, follow these steps to access the container and make the necessary changes to the configuration.
 
@@ -17,6 +13,10 @@ If you're running GitLab in a Docker container, follow these steps to access the
 2. Once inside the container, you will need to locate and edit the `gitlab.rb` file to enable Prometheus.
 
 ---
+### **Step 3: Enable Prometheus Integration**
+1. **Take Backup of `gitlab.rb` file**:
+
+Take backup of gitlab.rb file.
 
 ### **Step 3: Enable Prometheus Integration**
 

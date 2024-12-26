@@ -27,17 +27,6 @@ If you're running GitLab in a Docker container, follow these steps to access the
    nano /etc/gitlab/gitlab.rb
    ```
 
-2. **Enable Prometheus**:
-   In the `gitlab.rb` file, find and ensure the following setting is enabled:
-
-   ```ruby
-   prometheus['enable'] = true   # Enable Prometheus monitoring
-   prometheus['listen_address'] = '0.0.0.0:9090'  # Expose Prometheus on port 9090
-   ```
-
-   - **`prometheus['enable'] = true`**: This enables Prometheus for GitLab to expose metrics.
-   - **`prometheus['listen_address'] = '0.0.0.0:9090'`**: This ensures that Prometheus listens on all IP addresses and is accessible externally on port 9090.
-
 3. **Enable IP Allowlisting for Monitoring Endpoints** (Optional but recommended):
    By default, GitLab restricts access to monitoring endpoints (like `/metrics`) using IP allowlisting. You can add specific IPs or IP ranges to allow external access:
 
@@ -66,40 +55,6 @@ After making changes to the `gitlab.rb` configuration, you need to reconfigure G
 
 ---
 
-### **Step 5: Expose the Necessary Ports**
-
-If you're using **Docker** or **Docker Compose**, ensure you're mapping the correct ports for external access.
-
-1. **For `docker run`**:
-   Ensure you expose ports 80, 443 (for GitLab web), and 9090 (for Prometheus metrics):
-
-   ```bash
-   docker run -d \
-     -p 80:80 \
-     -p 443:443 \
-     -p 9090:9090 \
-     --name gitlab \
-     gitlab/gitlab-ce:latest
-   ```
-
-2. **For Docker Compose** (`docker-compose.yml`):
-   In the `docker-compose.yml` file, ensure the ports are correctly mapped:
-
-   ```yaml
-   version: '3'
-   services:
-     gitlab:
-       image: gitlab/gitlab-ce:latest
-       ports:
-         - "80:80"
-         - "443:443"
-         - "9090:9090"
-       environment:
-         - GITLAB_OMNIBUS_CONFIG="external_url 'http://<your_host_ip_or_domain>'"
-       restart: always
-   ```
-
----
 
 ### **Step 6: Test Accessing Prometheus Metrics**
 
@@ -108,30 +63,18 @@ Once GitLab is reconfigured and the ports are exposed, you can test the Promethe
 1. **Locally on the GitLab server** (using `localhost`):
    ```bash
    curl http://localhost:9090/metrics
+   curl http://localhost/-/metrics
    ```
 
 2. **Externally (from another machine)**, replace `<your_host_ip_or_domain>` with the IP or domain of your GitLab server:
    ```bash
-   curl http://<your_host_ip_or_domain>:9090/metrics
+   curl http://<your_host_ip_or_domain>/-/metrics
    ```
 
    If you're using **HTTPS**, use `https://` instead:
    ```bash
    curl https://<your_host_ip_or_domain>:9090/metrics
    ```
-
----
-
-### **Step 7: Review GitLab Logs (If Issues Persist)**
-
-If you're still encountering issues, check the GitLab logs for any related errors:
-
-1. **View logs** for any errors related to Prometheus or access issues:
-   ```bash
-   sudo gitlab-ctl tail
-   ```
-
-   Look for entries related to Prometheus or access control, and address any specific issues identified.
 
 ---
 

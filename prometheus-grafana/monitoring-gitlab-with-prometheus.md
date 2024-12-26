@@ -62,9 +62,9 @@ Once GitLab is reconfigured and the ports are exposed, you can test the Promethe
 
 1. **Locally on the GitLab server** (using `localhost`):
    ```bash
-   curl http://localhost:9090/metrics
-   curl http://localhost/-/metrics
+   curl http://localhost:9090/-/metrics
    ```
+- The port can be used as configured.
 
 2. **Externally (from another machine)**, replace `<your_host_ip_or_domain>` with the IP or domain of your GitLab server:
    ```bash
@@ -73,7 +73,7 @@ Once GitLab is reconfigured and the ports are exposed, you can test the Promethe
 
    If you're using **HTTPS**, use `https://` instead:
    ```bash
-   curl https://<your_host_ip_or_domain>:9090/metrics
+   curl https://<your_host_ip_or_domain>:9090/-/metrics
    ```
 
 ---
